@@ -108,7 +108,7 @@ async function run() {
             });
         })
 
-        app.get("/bookings/success/:trxId",(req,res)=>{
+        app.get("/bookings/success/:trxId",async(req,res)=>{
             res.send("hit")
         })
 
