@@ -108,9 +108,8 @@ async function run() {
             });
         })
 
-        app.post("/bookings/success/:trxId",(req,res)=>{
-            const trxId=req.params.trxId
-            console.log(trxId)
+        app.get("/bookings/success/:trxId",(req,res)=>{
+            console.log(req.params)
         })
 
         app.get("/bookings/:date", async (req, res) => {
