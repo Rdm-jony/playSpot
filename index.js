@@ -37,7 +37,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
     try {
-        await client.connect();
+        // await client.connect();
         // Connect the client to the server	(optional starting in v4.7)
         const userCollection = client.db("playspot").collection("userCollection")
         const turfCollection = client.db("playspot").collection("turfCollection")
