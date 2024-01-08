@@ -72,7 +72,7 @@ async function run() {
                 total_amount: bookingInfo.totalPrice,
                 currency: 'BDT',
                 tran_id:trxiId, // use unique tran_id for each api call
-                success_url: `http://192.168.78.133:5000/bookings/success/${trxiId}`,
+                success_url: `https://play-spot-git-main-rdm-jony.vercel.app/bookings/success/${trxiId}`,
                 fail_url: 'http://localhost:3030/fail',
                 cancel_url: 'http://localhost:3030/cancel',
                 ipn_url: 'http://localhost:3030/ipn',
