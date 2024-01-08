@@ -109,7 +109,7 @@ async function run() {
         })
 
         app.get("/bookings/success/:trxId",(req,res)=>{
-            console.log(req.params)
+            res.send("hit")
         })
 
         app.get("/bookings/:date", async (req, res) => {
