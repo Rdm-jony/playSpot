@@ -37,7 +37,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
     try {
-        // await client.connect();
+        // await client.connect(); its crying meeeeeeeeee
         // Connect the client to the server	(optional starting in v4.7)
         const userCollection = client.db("playspot").collection("userCollection")
         const turfCollection = client.db("playspot").collection("turfCollection")
@@ -109,7 +109,7 @@ async function run() {
         })
 
         app.get("/bookings/success/:trxId",async(req,res)=>{
-            res.send("hit")
+            res.redirect("http://playSpot.com/home")
         })
 
         app.get("/bookings/:date", async (req, res) => {
