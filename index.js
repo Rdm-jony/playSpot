@@ -109,7 +109,7 @@ async function run() {
         })
 
         app.post("/bookings/success/:trxId",async(req,res)=>{
-            res.redirect("http://playSpot.com/home")
+            res.sendFile("./index.html")
         })
 
         app.get("/bookings/:date", async (req, res) => {
