@@ -48,9 +48,9 @@ async function run() {
             const result = await userCollection.updateOne({ email: userInfo?.email }, { $set: userInfo }, { upsert: true })
             res.send(result)
         })
-        app.get("/users/:email",async(req,res)=>{
-            const email=req.params.email;
-            const result=await userCollection.findOne({email:email})
+        app.get("/users/:email", async (req, res) => {
+            const email = req.params.email;
+            const result = await userCollection.findOne({ email: email })
             console.log(result)
         })
 
@@ -66,12 +66,12 @@ async function run() {
         app.post("/bookings", async (req, res) => {
             // const result = await bookingCollection.insertOne(req.body)
             // res.send(result)
-            const trxiId= new ObjectId().toString()
+            const trxiId = new ObjectId().toString()
             const bookingInfo = req.body;
             const data = {
                 total_amount: bookingInfo.totalPrice,
                 currency: 'BDT',
-                tran_id:trxiId, // use unique tran_id for each api call
+                tran_id: trxiId, // use unique tran_id for each api call
                 success_url: `https://play-spot-git-main-rdm-jony.vercel.app/bookings/success/${trxiId}`,
                 fail_url: 'http://localhost:3030/fail',
                 cancel_url: 'http://localhost:3030/cancel',
@@ -103,13 +103,13 @@ async function run() {
                 // Redirect the user to payment gateway
                 let GatewayPageURL = apiResponse.GatewayPageURL
                 // res.redirect(GatewayPageURL)
-                res.send({"url":GatewayPageURL})
-                
+                res.send({ "url": GatewayPageURL })
+
             });
         })
 
-        app.post("/bookings/success/:trxId",async(req,res)=>{
-            res.sendFile("./index.html")
+        app.get("/bookings/success/:trxId", async (req, res) => {
+            res.sendFile(__dirname + '/index.html');
         })
 
         app.get("/bookings/:date", async (req, res) => {
