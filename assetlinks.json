@@ -1,0 +1,10 @@
+[{
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.example.playspot_client",
+      "sha256_cert_fingerprints":
+      ["ae:26:d1:bf:66:e0:86:e9:5d:6b:2d:51:d7:5f:ce:8b:a2:da:f2:28:db:a3:c5:d6:66:bb:b9:e6:5e:c7:90:1c"]
+    }
+  }]
+  
