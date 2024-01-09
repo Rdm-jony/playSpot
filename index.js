@@ -12,6 +12,8 @@ const is_live = false
 
 app.use(cors())
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }));
+
 
 
 
@@ -72,7 +74,7 @@ async function run() {
                 total_amount: bookingInfo.totalPrice,
                 currency: 'BDT',
                 tran_id: trxiId, // use unique tran_id for each api call
-                success_url: `https://play-spot-git-main-rdm-jony.vercel.app/bookings/success/${trxiId}`,
+                success_url: `https://play-spot-1day-git-main-rdm-jony.vercel.app/bookings/success/${trxiId}`,
                 fail_url: 'http://localhost:3030/fail',
                 cancel_url: 'http://localhost:3030/cancel',
                 ipn_url: 'http://localhost:3030/ipn',
@@ -108,8 +110,8 @@ async function run() {
             });
         })
 
-        app.get("/bookings/success/:trxId", async (req, res) => {
-            res.sendFile(__dirname + '/index.html');
+        app.post("/bookings/success/:trxId", async (req, res) => {
+            res.redirect("https://659d8c2589a0863bddd9ade9--charming-pika-dd91a0.netlify.app")
         })
 
         app.get("/bookings/:date", async (req, res) => {
