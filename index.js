@@ -68,7 +68,7 @@ async function run() {
         app.post("/bookings", async (req, res) => {
             const trxId = new ObjectId().toString()
             const bookingInfo = req.body
-            bookingInfo["trxId"] = trxiId
+            bookingInfo["trxId"] = trxId
             bookingInfo["paid"] = false
             bookingInfo["date"] = Date()
             const result = await bookingCollection.insertOne(bookingInfo)
