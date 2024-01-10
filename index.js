@@ -2,6 +2,9 @@ const express = require('express');
 const app = express()
 const port = process.env.PORT || 5000;
 const cors = require('cors');
+var dateFormat = require('dateformat');
+const moment = require('moment');
+
 require("dotenv").config()
 
 
@@ -134,6 +137,8 @@ async function run() {
             var date = req.params.date
             var turfId = req.query.turfId
             var eventName = req.query.eventName
+            var weekday = req.query.weekday
+
             const filterWithDate = await bookingCollection.find({ date: date, paid: true }).toArray()
             const filterWithTurfId = filterWithDate.filter(turf => turf.turfId == turfId)
             const filterWithEventName = filterWithTurfId.filter(turf => turf.eventName == eventName)
@@ -144,7 +149,59 @@ async function run() {
                 var slot = `${turf.slot}`.split("-")
                 slot.map(i => timeSlotList.push(i))
             })
-            res.send(timeSlotList)
+            const specificTurf = await turfCollection.findOne({ _id: new ObjectId(turfId) })
+            const specifiEvent = specificTurf.eventList.find(i => i.eventName == eventName)
+            var listOfTimeRange = [];
+
+            if (weekday != "Friday") {
+                for (var i = 0; i < specifiEvent.weekdayTime.length; i++) {
+                    var startTime = specifiEvent.weekdayTime[i].toString().split("-");
+                    var endTime = specifiEvent.weekdayTime[i].toString().split("-");
+
+                    const startTimeClock = moment(startTime[0], 'HH:mm A');
+                    const endTimeClock = moment(endTime[1], 'HH:mm A');
+                    const interval = moment.duration(1, 'hour');
+
+                    const hoursArray = [];
+                    while (startTimeClock.isBefore(endTimeClock)) {
+                        hoursArray.push(startTimeClock.format('HH:mm A'));
+                        startTimeClock.add(interval);
+                    }
+                    listOfTimeRange.push(hoursArray)
+
+                }
+
+            }
+            else {
+                for (var i = 0; i < specifiEvent.weekendTime.length; i++) {
+                    var startTime = specifiEvent.weekendTime[i].toString().split("-");
+                    var endTime = specifiEvent.weekendTime[i].toString().split("-");
+
+                    const startTimeClock = moment(startTime[0], 'HH:mm A');
+                    const endTimeClock = moment(endTime[1], 'HH:mm A');
+                    const interval = moment.duration(1, 'hour');
+
+                    const hoursArray = [];
+                    while (startTimeClock.isBefore(endTimeClock)) {
+                        hoursArray.push(startTimeClock.format('HH:mm A'));
+                        startTimeClock.add(interval);
+                    }
+                    listOfTimeRange.push(hoursArray)
+
+                }
+            }
+            var finalSlotOfAvailableTime=[]
+            listOfTimeRange.map(range => {
+            console.log(range)
+                timeSlotList.map(i => {
+               
+                    if (range.includes(i) && i != range[range.length - 2]) {
+                        finalSlotOfAvailableTime.push(i)
+
+                    }
+                })
+            })
+            res.send(finalSlotOfAvailableTime)
         })
 
 
