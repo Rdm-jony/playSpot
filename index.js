@@ -70,7 +70,7 @@ async function run() {
             const bookingInfo = req.body
             bookingInfo["trxId"] = trxId
             bookingInfo["paid"] = false
-            bookingInfo["date"] = Date()
+            bookingInfo["paymentDate"] = Date()
             const result = await bookingCollection.insertOne(bookingInfo)
 
             const data = {
