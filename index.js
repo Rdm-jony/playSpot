@@ -115,6 +115,15 @@ async function run() {
 
         app.post("/bookings/success/:trxId", async (req, res) => {
             if (req.params.trxId) {
+                const filter = { trxId:req.params.trxId };
+                const options = { upsert: true };
+                const updateDoc = {
+                    $set: {
+                      paid:true
+                    },
+                  };
+                  const result = await bookingCollection.updateOne(filter, updateDoc, options);
+
                 res.redirect("https://659e961aa17148ece11945dc--charming-pika-dd91a0.netlify.app/")
 
             }
