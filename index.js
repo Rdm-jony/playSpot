@@ -115,14 +115,14 @@ async function run() {
 
         app.post("/bookings/success/:trxId", async (req, res) => {
             if (req.params.trxId) {
-                const filter = { trxId:req.params.trxId };
+                const filter = { trxId: req.params.trxId };
                 const options = { upsert: true };
                 const updateDoc = {
                     $set: {
-                      paid:true
+                        paid: true
                     },
-                  };
-                  const result = await bookingCollection.updateOne(filter, updateDoc, options);
+                };
+                const result = await bookingCollection.updateOne(filter, updateDoc, options);
 
                 res.redirect("https://659e961aa17148ece11945dc--charming-pika-dd91a0.netlify.app/")
 
@@ -134,12 +134,13 @@ async function run() {
             var date = req.params.date
             var turfId = req.query.turfId
             var eventName = req.query.eventName
-            const filterWithDate = await bookingCollection.find({ date: date }).toArray()
+            const filterWithDate = await bookingCollection.find({ date: date, paid: ture }).toArray()
             const filterWithTurfId = filterWithDate.filter(turf => turf.turfId == turfId)
             const filterWithEventName = filterWithTurfId.filter(turf => turf.eventName == eventName)
             var timeSlotList = []
 
             filterWithEventName.map(turf => {
+
                 var slot = `${turf.slot}`.split("-")
                 slot.map(i => timeSlotList.push(i))
             })
