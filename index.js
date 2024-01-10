@@ -66,10 +66,13 @@ async function run() {
             res.send(result)
         })
         app.post("/bookings", async (req, res) => {
-            // const result = await bookingCollection.insertOne(req.body)
-            // res.send(result)
             const trxiId = new ObjectId().toString()
-            const bookingInfo = req.body;
+            const bookingInfo = req.body
+            bookingInfo["trxiId"] = trxiId
+            bookingInfo["paid"] = false
+            bookingInfo["date"] = Date()
+            const result = await bookingCollection.insertOne(bookingInfo)
+
             const data = {
                 total_amount: bookingInfo.totalPrice,
                 currency: 'BDT',
@@ -111,7 +114,10 @@ async function run() {
         })
 
         app.post("/bookings/success/:trxId", async (req, res) => {
-            res.redirect("https://659e961aa17148ece11945dc--charming-pika-dd91a0.netlify.app/")
+            if (req.params.trxId) {
+                res.redirect("https://659e961aa17148ece11945dc--charming-pika-dd91a0.netlify.app/")
+
+            }
         })
 
         app.get("/bookings/:date", async (req, res) => {
