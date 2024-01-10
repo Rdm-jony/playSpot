@@ -66,7 +66,7 @@ async function run() {
             res.send(result)
         })
         app.post("/bookings", async (req, res) => {
-            const trxiId = new ObjectId().toString()
+            const trxId = new ObjectId().toString()
             const bookingInfo = req.body
             bookingInfo["trxId"] = trxiId
             bookingInfo["paid"] = false
@@ -76,8 +76,8 @@ async function run() {
             const data = {
                 total_amount: bookingInfo.totalPrice,
                 currency: 'BDT',
-                tran_id: trxiId, // use unique tran_id for each api call
-                success_url: `https://play-spot-1day-git-main-rdm-jony.vercel.app/bookings/success/${trxiId}`,
+                tran_id: trxId, // use unique tran_id for each api call
+                success_url: `https://play-spot-1day-git-main-rdm-jony.vercel.app/bookings/success/${trxId}`,
                 fail_url: 'http://localhost:3030/fail',
                 cancel_url: 'http://localhost:3030/cancel',
                 ipn_url: 'http://localhost:3030/ipn',
@@ -134,7 +134,7 @@ async function run() {
             var date = req.params.date
             var turfId = req.query.turfId
             var eventName = req.query.eventName
-            const filterWithDate = await bookingCollection.find({ date: date, paid: ture }).toArray()
+            const filterWithDate = await bookingCollection.find({ date: date, paid: true }).toArray()
             const filterWithTurfId = filterWithDate.filter(turf => turf.turfId == turfId)
             const filterWithEventName = filterWithTurfId.filter(turf => turf.eventName == eventName)
             var timeSlotList = []
