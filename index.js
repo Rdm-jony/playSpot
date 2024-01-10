@@ -111,7 +111,7 @@ async function run() {
         })
 
         app.post("/bookings/success/:trxId", async (req, res) => {
-            res.redirect("https://659d8c2589a0863bddd9ade9--charming-pika-dd91a0.netlify.app")
+            res.redirect("https://659e961aa17148ece11945dc--charming-pika-dd91a0.netlify.app/")
         })
 
         app.get("/bookings/:date", async (req, res) => {
