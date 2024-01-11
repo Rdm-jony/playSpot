@@ -243,7 +243,6 @@ async function run() {
                     // const interval = moment.duration(1, 'hour');
                     var everyHour = []
                     while (startTimeClock.isSameOrBefore(endTimeClock)) {
-                        listOfEveryAvalilableHour.push(startTimeClock.format('hh:mm A'));
                         startTimeClock.add(1, 'hours');
                         everyHour.push(startTimeClock.format('hh:mm A'))
 
