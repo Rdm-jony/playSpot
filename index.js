@@ -142,66 +142,154 @@ async function run() {
             const filterWithDate = await bookingCollection.find({ date: date, paid: true }).toArray()
             const filterWithTurfId = filterWithDate.filter(turf => turf.turfId == turfId)
             const filterWithEventName = filterWithTurfId.filter(turf => turf.eventName == eventName)
-            var timeSlotList = []
 
-            filterWithEventName.map(turf => {
-
-                var slot = `${turf.slot}`.split("-")
-                slot.map(i => timeSlotList.push(i))
-            })
             const specificTurf = await turfCollection.findOne({ _id: new ObjectId(turfId) })
             const specifiEvent = specificTurf.eventList.find(i => i.eventName == eventName)
             var listOfTimeRange = [];
+            var listOfEveryAvalilableHour = []
+
 
             if (weekday != "Friday") {
                 for (var i = 0; i < specifiEvent.weekdayTime.length; i++) {
-                    var startTime = specifiEvent.weekdayTime[i].toString().split("-");
-                    var endTime = specifiEvent.weekdayTime[i].toString().split("-");
+                    var timeRange = specifiEvent.weekdayTime[i].toString().split("-");
 
-                    const startTimeClock = moment(startTime[0], 'HH:mm A');
-                    const endTimeClock = moment(endTime[1], 'HH:mm A');
-                    const interval = moment.duration(1, 'hour');
+                    const startTimeClock = moment(timeRange[0].replace(" ", ""), 'HH:mm A');
+                    const endTimeClock = moment(timeRange[1].replace(" ", ""), 'HH:mm A');
+                    // const interval = moment.duration(1, 'hour');
 
                     const hoursArray = [];
-                    while (startTimeClock.isBefore(endTimeClock)) {
-                        hoursArray.push(startTimeClock.format('HH:mm A'));
-                        startTimeClock.add(interval);
+                    while (startTimeClock.isSameOrBefore(endTimeClock)) {
+                        hoursArray.push(startTimeClock.format('hh:mm A'));
+                        startTimeClock.add(1, 'hours');
+
                     }
+
+
                     listOfTimeRange.push(hoursArray)
 
                 }
 
             }
             else {
+                const result= eeryHourBeetweenRange(specifiEvent.weekendTime)
                 for (var i = 0; i < specifiEvent.weekendTime.length; i++) {
-                    var startTime = specifiEvent.weekendTime[i].toString().split("-");
-                    var endTime = specifiEvent.weekendTime[i].toString().split("-");
+                    var timeRange = specifiEvent.weekendTime[i].toString().split("-");
 
-                    const startTimeClock = moment(startTime[0], 'HH:mm A');
-                    const endTimeClock = moment(endTime[1], 'HH:mm A');
+                    const startTimeClock = moment(timeRange[0].replace(" ", ""), 'HH:mm A');
+                    const endTimeClock = moment(timeRange[1].replace(" ", ""), 'HH:mm A');
                     const interval = moment.duration(1, 'hour');
 
                     const hoursArray = [];
-                    while (startTimeClock.isBefore(endTimeClock)) {
-                        hoursArray.push(startTimeClock.format('HH:mm A'));
+                    while (startTimeClock.isSameOrBefore(endTimeClock)) {
+                        hoursArray.push(startTimeClock.format('hh:mm A'));
                         startTimeClock.add(interval);
                     }
                     listOfTimeRange.push(hoursArray)
 
                 }
             }
-            var finalSlotOfAvailableTime=[]
-            listOfTimeRange.map(range => {
-            console.log(range)
-                timeSlotList.map(i => {
-               
-                    if (range.includes(i) && i != range[range.length - 2]) {
-                        finalSlotOfAvailableTime.push(i)
+     
+            
+            
+            // Example usage
+
+            listOfTimeRange.map(timeRangeOrginal => {
+
+                filterWithEventName.map(turf => {
+
+                    var slot = `${turf.slot}`.split("-")
+                    console.log(slot[0])
+                    if (timeRangeOrginal.includes(slot[0])) {
+                        const startTime = moment(timeRangeOrginal[0].replace(" ", ""), "HH:mm A").format('hh:mm A');
+                        const endTime = moment(timeRangeOrginal[timeRangeOrginal.length - 1].replace(" ", ""), "HH:mm A").format('hh:mm A');
+                        const selectedStartTime = moment(slot[0].replace(" ", ""), "HH:mm A").format('hh:mm A');
+                        const selectedEndTime = moment(slot[1].replace(" ", ""), "HH:mm A").format('hh:mm A');
+
+
+                        const result = findAvailableTimeRange(startTime, endTime, selectedStartTime, selectedEndTime);
+                        const availableHour = eeryHourBeetweenRange(result)
+
+                        availableHour.map(i=>listOfEveryAvalilableHour.push(i))
+
+
+
+                    } else {
+                        timeRangeOrginal.map(i => listOfEveryAvalilableHour.push(i))
+
+
 
                     }
-                })
+
+
+
+
+                }
+
+
+                )
+
+
+
+
             })
-            res.send(finalSlotOfAvailableTime)
+            res.send(listOfEveryAvalilableHour)
+
+            function eeryHourBeetweenRange(result) {
+                for (var i = 0; i < result.length; i++) {
+                    var timeRange = result[i].toString().split("-");
+                    // console.log(timeRange)
+                    const startTimeClock = moment(timeRange[0], 'HH:mm A');
+                    const endTimeClock = moment(timeRange[1], 'HH:mm A');
+                    // const interval = moment.duration(1, 'hour');
+                    var everyHour = []
+                    while (startTimeClock.isSameOrBefore(endTimeClock)) {
+                        listOfEveryAvalilableHour.push(startTimeClock.format('hh:mm A'));
+                        startTimeClock.add(1, 'hours');
+                        everyHour.push(startTimeClock.format('hh:mm A'))
+
+                    }
+                    return everyHour;
+
+
+
+                }
+            }
+            function findAvailableTimeRange(startTime, endTime, selectedStartTime, selectedEndTime) {
+                // Convert the time strings to Date objects for easier comparison
+                const startDate = new Date(`2024-01-01 ${startTime}`);
+                const endDate = new Date(`2024-01-01 ${endTime}`);
+                const selectedStartDate = new Date(`2024-01-01 ${selectedStartTime}`);
+                const selectedEndDate = new Date(`2024-01-01 ${selectedEndTime}`);
+
+                // Check if the selected time range is within the given time range
+                if (selectedStartDate < startDate || selectedEndDate > endDate) {
+                    return "Selected time range is not within the given time range.";
+                }
+
+                // Check if there is an available time range before the selected time range
+                const availableBefore = selectedStartDate > startDate
+                    ? `${startTime} - ${selectedStartTime}`
+                    : null;
+
+                // Check if there is an available time range after the selected time range
+                const availableAfter = selectedEndDate < endDate
+                    ? `${selectedEndTime} - ${endTime}`
+                    : null;
+
+                // Combine the available time ranges
+                const availableTimeRanges = [];
+                if (availableBefore) {
+                    availableTimeRanges.push(availableBefore);
+                }
+                if (availableAfter) {
+                    availableTimeRanges.push(availableAfter);
+                }
+                return availableTimeRanges;
+
+            }
+
+
+
         })
 
 
