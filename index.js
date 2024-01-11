@@ -171,7 +171,7 @@ async function run() {
 
             }
             else {
-                const result= eeryHourBeetweenRange(specifiEvent.weekendTime)
+                const result = eeryHourBeetweenRange(specifiEvent.weekendTime)
                 for (var i = 0; i < specifiEvent.weekendTime.length; i++) {
                     var timeRange = specifiEvent.weekendTime[i].toString().split("-");
 
@@ -188,15 +188,15 @@ async function run() {
 
                 }
             }
-     
-            
-            
+
+
+
             // Example usage
 
             listOfTimeRange.map(timeRangeOrginal => {
 
                 filterWithEventName.map(turf => {
-
+                    console.log(turf)
                     var slot = `${turf.slot}`.split("-")
                     console.log(slot[0])
                     if (timeRangeOrginal.includes(slot[0])) {
@@ -209,16 +209,11 @@ async function run() {
                         const result = findAvailableTimeRange(startTime, endTime, selectedStartTime, selectedEndTime);
                         const availableHour = eeryHourBeetweenRange(result)
 
-                        availableHour.map(i=>listOfEveryAvalilableHour.push(i))
+                        availableHour.map(i => listOfEveryAvalilableHour.push(i))
 
 
 
-                    } else {
-                        timeRangeOrginal.map(i => listOfEveryAvalilableHour.push(i))
-
-
-
-                    }
+                    } 
 
 
 
@@ -229,10 +224,10 @@ async function run() {
                 )
 
 
-
+                timeRangeOrginal.map(i => listOfEveryAvalilableHour.push(i))
 
             })
-            res.send(listOfEveryAvalilableHour)
+
 
             function eeryHourBeetweenRange(result) {
                 for (var i = 0; i < result.length; i++) {
@@ -287,8 +282,7 @@ async function run() {
 
             }
 
-
-
+            res.send(listOfEveryAvalilableHour)
         })
 
 
