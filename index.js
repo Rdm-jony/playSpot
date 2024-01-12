@@ -171,16 +171,16 @@ async function run() {
 
             }
             else {
-                const result = eeryHourBeetweenRange(specifiEvent.weekendTime)
                 for (var i = 0; i < specifiEvent.weekendTime.length; i++) {
                     var timeRange = specifiEvent.weekendTime[i].toString().split("-");
 
                     const startTimeClock = moment(timeRange[0].replace(" ", ""), 'HH:mm A');
                     const endTimeClock = moment(timeRange[1].replace(" ", ""), 'HH:mm A');
                     const interval = moment.duration(1, 'hour');
-
+                    
                     const hoursArray = [];
                     while (startTimeClock.isSameOrBefore(endTimeClock)) {
+                       
                         hoursArray.push(startTimeClock.format('hh:mm A'));
                         startTimeClock.add(interval);
                     }
@@ -196,17 +196,18 @@ async function run() {
             listOfTimeRange.map(timeRangeOrginal => {
 
                 filterWithEventName.map(turf => {
-                    console.log(turf)
+                 
                     var slot = `${turf.slot}`.split("-")
-                    console.log(slot[0])
+                   
                     if (timeRangeOrginal.includes(slot[0])) {
+                      
                         const startTime = moment(timeRangeOrginal[0].replace(" ", ""), "HH:mm A").format('hh:mm A');
                         const endTime = moment(timeRangeOrginal[timeRangeOrginal.length - 1].replace(" ", ""), "HH:mm A").format('hh:mm A');
                         const selectedStartTime = moment(slot[0].replace(" ", ""), "HH:mm A").format('hh:mm A');
                         const selectedEndTime = moment(slot[1].replace(" ", ""), "HH:mm A").format('hh:mm A');
 
-
                         const result = findAvailableTimeRange(startTime, endTime, selectedStartTime, selectedEndTime);
+                       
                         const availableHour = eeryHourBeetweenRange(result)
 
                         availableHour.map(i => listOfEveryAvalilableHour.push(i))
@@ -238,6 +239,7 @@ async function run() {
                     // const interval = moment.duration(1, 'hour');
                     var everyHour = []
                     while (startTimeClock.isSameOrBefore(endTimeClock)) {
+                        
                         startTimeClock.add(1, 'hours');
                         everyHour.push(startTimeClock.format('hh:mm A'))
 
@@ -278,10 +280,11 @@ async function run() {
                 if (availableAfter) {
                     availableTimeRanges.push(availableAfter);
                 }
+                console.log(availableTimeRanges)
                 return availableTimeRanges;
 
             }
-
+console.log(listOfEveryAvalilableHour)
             res.send(listOfEveryAvalilableHour)
         })
 
