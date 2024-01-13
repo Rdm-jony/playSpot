@@ -214,7 +214,7 @@ async function run() {
 
 
                     } else {
-
+                        timeRangeOrginal.map(i => listOfEveryAvalilableHour.push(i))
                     }
 
 
@@ -228,7 +228,7 @@ async function run() {
 
 
 
-                timeRangeOrginal.map(i => listOfEveryAvalilableHour.push(i))
+
             })
 
 
@@ -288,8 +288,22 @@ async function run() {
 
             }
 
-            console.log(listOfEveryAvalilableHour)
+
+            if (listOfEveryAvalilableHour.length == 0) {
+
+                listOfTimeRange.map(list => {
+                    list.map(i => listOfEveryAvalilableHour.push(i))
+                });
+            }
+
             res.send(listOfEveryAvalilableHour)
+        })
+
+
+        app.get("/mybooking/:email", async (req, res) => {
+            const email = req.params.email;
+            const result = await bookingCollection.find({ email: email }).toArray()
+            console.log(result)
         })
 
 
