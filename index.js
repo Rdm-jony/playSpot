@@ -4,9 +4,9 @@ const port = process.env.PORT || 5000;
 const cors = require('cors');
 var dateFormat = require('dateformat');
 const moment = require('moment');
+const brevo = require('@getbrevo/brevo');
 
 require("dotenv").config()
-
 
 const SSLCommerzPayment = require('sslcommerz-lts')
 const store_id = process.env.sslId;
@@ -56,7 +56,14 @@ async function run() {
         app.get("/users/:email", async (req, res) => {
             const email = req.params.email;
             const result = await userCollection.findOne({ email: email })
-            console.log(result)
+            res.send(result)
+        })
+        app.put("/user/photo/:email", async (req, res) => {
+            const email = req.params.email;
+            const image = req.body;
+            console.log(email)
+            const result = await userCollection.updateOne({ email: email }, { $set: image }, { upsert: true })
+            res.send(result)
         })
 
         app.post("/addTurf", async (req, res) => {
@@ -74,6 +81,7 @@ async function run() {
             bookingInfo["trxId"] = trxId
             bookingInfo["paid"] = false
             bookingInfo["paymentDate"] = Date()
+
             const result = await bookingCollection.insertOne(bookingInfo)
 
             const data = {
@@ -118,6 +126,7 @@ async function run() {
 
         app.post("/bookings/success/:trxId", async (req, res) => {
             if (req.params.trxId) {
+                print("true")
                 const filter = { trxId: req.params.trxId };
                 const options = { upsert: true };
                 const updateDoc = {
@@ -126,8 +135,32 @@ async function run() {
                     },
                 };
                 const result = await bookingCollection.updateOne(filter, updateDoc, options);
+                console.log(result)
+                if (result.acknowledged == true) {
+                    const findBookdTurf = await bookingCollection.findOne({ trxId: req.params.trxId })
+                    console.log(findBookdTurf)
+                    let apiKey = defaultClient.authentications['api-key'];
+                    apiKey.apiKey = process.env.brevoKey;
 
-                res.redirect("https://659e961aa17148ece11945dc--charming-pika-dd91a0.netlify.app/")
+                    let defaultClient = brevo.ApiClient.instance;
+
+                    let apiInstance = new brevo.TransactionalEmailsApi();
+
+                    let sendSmtpEmail = new brevo.SendSmtpEmail();
+                    sendSmtpEmail.subject = "My {{params.subject}}";
+                    sendSmtpEmail.htmlContent = "<html><body><h1>Common: This is my first transactional email {{params.parameter}}</h1></body></html>";
+                    sendSmtpEmail.sender = { "name": "Jony das", "email": "jonydascse@gmail.com" };
+                    sendSmtpEmail.to = [
+                        { "email": `${findBookdTurf.email}`, "name": `${findBookdTurf.customerName}` }
+                    ];
+                    apiInstance.sendTransacEmail(sendSmtpEmail).then(function (data) {
+                        console.log('API called successfully. Returned data: ' + JSON.stringify(data));
+                    }, function (error) {
+                        console.error(error);
+                    });
+                    res.redirect("https://659e961aa17148ece11945dc--charming-pika-dd91a0.netlify.app/")
+                }
+
 
             }
         })
@@ -303,7 +336,36 @@ async function run() {
         app.get("/mybooking/:email", async (req, res) => {
             const email = req.params.email;
             const result = await bookingCollection.find({ email: email }).toArray()
-            console.log(result)
+            res.send(result)
+        })
+
+        app.post("/review", async (req, res) => {
+            const reviewInfo = req.body;
+            const turfId = reviewInfo.turfId;
+            const findTurf = await turfCollection.findOne({ _id: new ObjectId(turfId) })
+            if (findTurf?.reviews) {
+                var alreadyFound = findTurf.reviews.find(i => i.email == reviewInfo.email)
+                if (alreadyFound) {
+                    return;
+                } else {
+                    const result = await turfCollection.updateOne({ _id: new ObjectId(turfId) }, { $push: { reviews: reviewInfo } })
+                    res.send(result)
+
+                }
+
+
+            } else {
+                const reviews = [reviewInfo]
+                const updateDoc = {
+                    $set: {
+                        reviews: reviews
+                    }
+                }
+                const options = { upsert: true }
+                const result = await turfCollection.updateOne({ _id: new ObjectId(turfId) }, updateDoc, options);
+                res.send(result)
+
+            }
         })
 
 
