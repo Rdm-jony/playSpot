@@ -138,6 +138,8 @@ async function run() {
                     },
                 };
                 const result = await bookingCollection.updateOne(filter, updateDoc, options);
+                res.redirect("https://659e961aa17148ece11945dc--charming-pika-dd91a0.netlify.app/")
+
                 const findBookedTurf = await bookingCollection.findOne({ trxId: req.params.trxId })
 
                 let apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
@@ -158,7 +160,6 @@ async function run() {
                 sendSmtpEmail.to = [{ "email": `jonydascse21@gmail.com`, "name": `${customerName.customerName}` }];
 
                 apiInstance.sendTransacEmail(sendSmtpEmail).then(function (data) {
-                    res.redirect("https://659e961aa17148ece11945dc--charming-pika-dd91a0.netlify.app/")
 
                 }, function (error) {
                     console.error(error);
