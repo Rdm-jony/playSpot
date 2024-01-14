@@ -8,7 +8,7 @@ const brevo = require('@getbrevo/brevo');
 
 require("dotenv").config()
 
-const SSLCommerzPayment = require('sslcommerz-lts')
+const SSLCommerzPayment = require(("sslcommerz-lts"))
 const store_id = process.env.sslId;
 const store_passwd = process.env.sslPass
 const is_live = false
@@ -88,7 +88,7 @@ async function run() {
                 total_amount: bookingInfo.totalPrice,
                 currency: 'BDT',
                 tran_id: trxId, // use unique tran_id for each api call
-                success_url: `https://play-spot-1day-git-main-rdm-jony.vercel.app/bookings/success/${trxId}`,
+                success_url: `https://play-spot-ylsv-git-main-rdm-jony.vercel.app/bookings/success/${trxId}`,
                 fail_url: 'http://localhost:3030/fail',
                 cancel_url: 'http://localhost:3030/cancel',
                 ipn_url: 'http://localhost:3030/ipn',
