@@ -76,6 +76,30 @@ async function run() {
             const result = await turfCollection.find({}).toArray()
             res.send(result)
         })
+        app.get("/allSpots/filter", async (req, res) => {
+            const eventName = req.query.event;
+            const allSpots = await turfCollection.find({}).toArray()
+            const eventList = allSpots
+            const filteringAllSpotSlist = []
+            allSpots.map(spot => {
+                spot.eventList.map(i => {
+                    if (i.eventName.toLowerCase() == eventName.toLowerCase()) {
+
+                        filteringAllSpotSlist.push(spot)
+                    }
+                })
+            })
+            res.send(filteringAllSpotSlist)
+
+        })
+        app.get("/allSpots/filterText", async (req, res) => {
+            const searchText = req.query.search;
+
+            const allSpots = await turfCollection.find({}).toArray()
+
+            const filteringAllSpotSlist = allSpots.filter(spot => spot?.name.toString().includes(searchText))
+            res.send(filteringAllSpotSlist)
+        })
         app.post("/bookings", async (req, res) => {
             const trxId = new ObjectId().toString()
             const bookingInfo = req.body
@@ -84,7 +108,7 @@ async function run() {
             bookingInfo["paymentDate"] = Date()
 
             const result = await bookingCollection.insertOne(bookingInfo)
-
+            console.log(bookingInfo.email)
 
             let apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
