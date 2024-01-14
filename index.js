@@ -8,7 +8,8 @@ const brevo = require('@getbrevo/brevo');
 
 require("dotenv").config()
 
-const SSLCommerzPayment = require("sslcommerz-lts");
+
+const SSLCommerzPayment = require('sslcommerz-lts')
 const store_id = process.env.sslId;
 const store_passwd = process.env.sslPass
 const is_live = false
@@ -81,14 +82,14 @@ async function run() {
             bookingInfo["trxId"] = trxId
             bookingInfo["paid"] = false
             bookingInfo["paymentDate"] = Date()
-
+            console.log(bookingInfo)
             const result = await bookingCollection.insertOne(bookingInfo)
 
             const data = {
                 total_amount: bookingInfo.totalPrice,
                 currency: 'BDT',
                 tran_id: trxId, // use unique tran_id for each api call
-                success_url: `http://localhost:5000/bookings/success/${trxId}`,
+                success_url: `https://play-spot-ylsv-git-main-rdm-jony.vercel.app/bookings/success/${trxId}`,
                 fail_url: 'http://localhost:3030/fail',
                 cancel_url: 'http://localhost:3030/cancel',
                 ipn_url: 'http://localhost:3030/ipn',
@@ -125,9 +126,7 @@ async function run() {
         })
 
         app.post("/bookings/success/:trxId", async (req, res) => {
-            console.log(req.params.id)
             if (req.params.trxId) {
-
                 const filter = { trxId: req.params.trxId };
                 const options = { upsert: true };
                 const updateDoc = {
@@ -136,32 +135,29 @@ async function run() {
                     },
                 };
                 const result = await bookingCollection.updateOne(filter, updateDoc, options);
-                console.log(result)
-                // if (result.acknowledged == true) {
-                //     const findBookdTurf = await bookingCollection.findOne({ trxId: req.params.trxId })
-                //     console.log(findBookdTurf)
-                //     let apiKey = defaultClient.authentications['api-key'];
-                //     apiKey.apiKey = process.env.brevoKey;
+                
+                const findBookdTurf = await bookingCollection.findOne({ trxId: req.params.trxId })
+                let apiKey = defaultClient.authentications['api-key'];
+                apiKey.apiKey = process.env.brevoKey;
 
-                //     let defaultClient = brevo.ApiClient.instance;
+                let defaultClient = brevo.ApiClient.instance;
 
-                //     let apiInstance = new brevo.TransactionalEmailsApi();
+                let apiInstance = new brevo.TransactionalEmailsApi();
 
-                //     let sendSmtpEmail = new brevo.SendSmtpEmail();
-                //     sendSmtpEmail.subject = "My {{params.subject}}";
-                //     sendSmtpEmail.htmlContent = "<html><body><h1>Common: This is my first transactional email {{params.parameter}}</h1></body></html>";
-                //     sendSmtpEmail.sender = { "name": "Jony das", "email": "jonydascse@gmail.com" };
-                //     sendSmtpEmail.to = [
-                //         { "email": `${findBookdTurf.email}`, "name": `${findBookdTurf.customerName}` }
-                //     ];
-                //     apiInstance.sendTransacEmail(sendSmtpEmail).then(function (data) {
-                //         console.log('API called successfully. Returned data: ' + JSON.stringify(data));
-                //     }, function (error) {
-                //         console.error(error);
-                //     });
-                //     res.redirect("https://659e961aa17148ece11945dc--charming-pika-dd91a0.netlify.app/")
-                // }
-
+                let sendSmtpEmail = new brevo.SendSmtpEmail();
+                sendSmtpEmail.subject = "My {{params.subject}}";
+                sendSmtpEmail.htmlContent = "<html><body><h1>Common: This is my first transactional email {{params.parameter}}</h1></body></html>";
+                sendSmtpEmail.sender = { "name": "Jony das", "email": "jonydascse@gmail.com" };
+                sendSmtpEmail.to = [
+                    { "email": `${findBookdTurf.email}`, "name": `${findBookdTurf.customerName}` }
+                ];
+                apiInstance.sendTransacEmail(sendSmtpEmail).then(function (data) {
+                    console.log('API called successfully. Returned data: ' + JSON.stringify(data));
+                  }, function (error) {
+                    console.error(error);
+                  });
+                
+                res.redirect("https://659e961aa17148ece11945dc--charming-pika-dd91a0.netlify.app/")
 
             }
         })
