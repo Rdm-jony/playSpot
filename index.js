@@ -86,7 +86,28 @@ async function run() {
             const result = await bookingCollection.insertOne(bookingInfo)
 
 
+            let apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
+            let apiKey = apiInstance.authentications['apiKey'];
+            apiKey.apiKey = process.env.brevoKey;
+
+            let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+
+            sendSmtpEmail.subject = "My {{params.subject}}";
+            sendSmtpEmail.htmlContent = `<html><body><h1>Payment successFull of ${bookingInfo.turfName}</h1>
+                
+                <h2>Event : ${bookingInfo.eventName}</h2>
+                <h2>Slot : ${bookingInfo.slot}</h2>
+                <h3>Transaction Id : ${bookingInfo.trxId}</h3>
+                </body></html>`;
+            sendSmtpEmail.sender = { "name": "Playespot.org", "email": "jonydascse@gmail.com" };
+            sendSmtpEmail.to = [{ "email": `${bookingInfo.email}`, "name": `${bookingInfo.customerName}` }];
+
+            apiInstance.sendTransacEmail(sendSmtpEmail).then(function (data) {
+
+            }, function (error) {
+                console.error(error);
+            });
 
             const data = {
                 total_amount: bookingInfo.totalPrice,
@@ -123,6 +144,7 @@ async function run() {
                 // Redirect the user to payment gateway
                 let GatewayPageURL = apiResponse.GatewayPageURL
                 // res.redirect(GatewayPageURL)
+
                 res.send({ "url": GatewayPageURL })
 
             });
@@ -140,30 +162,8 @@ async function run() {
                 const result = await bookingCollection.updateOne(filter, updateDoc, options);
                 res.redirect("https://659e961aa17148ece11945dc--charming-pika-dd91a0.netlify.app/")
 
-                const findBookedTurf = await bookingCollection.findOne({ trxId: req.params.trxId })
 
-                let apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
-                let apiKey = apiInstance.authentications['apiKey'];
-                apiKey.apiKey = process.env.brevoKey;
-
-                let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
-
-                sendSmtpEmail.subject = "My {{params.subject}}";
-                sendSmtpEmail.htmlContent = `<html><body><h1>Payment successFull of ${findBookedTurf.turfName}</h1>
-                    
-                    <h2>Event : ${findBookedTurf.eventName}</h2>
-                    <h2>Slot : ${findBookedTurf.slot}</h2>
-                    <h3>Transaction Id : ${findBookedTurf.trxId}</h3>
-                    </body></html>`;
-                sendSmtpEmail.sender = { "name": "Playespot.org", "email": "jonydascse@gmail.com" };
-                sendSmtpEmail.to = [{ "email": `jonydascse21@gmail.com`, "name": `${customerName.customerName}` }];
-
-                apiInstance.sendTransacEmail(sendSmtpEmail).then(function (data) {
-
-                }, function (error) {
-                    console.error(error);
-                });
 
 
 
