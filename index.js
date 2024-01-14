@@ -4,7 +4,7 @@ const port = process.env.PORT || 5000;
 const cors = require('cors');
 var dateFormat = require('dateformat');
 const moment = require('moment');
-const brevo = require('@getbrevo/brevo');
+const SibApiV3Sdk = require('@getbrevo/brevo');
 
 require("dotenv").config()
 
@@ -82,8 +82,11 @@ async function run() {
             bookingInfo["trxId"] = trxId
             bookingInfo["paid"] = false
             bookingInfo["paymentDate"] = Date()
-            console.log(bookingInfo)
+
             const result = await bookingCollection.insertOne(bookingInfo)
+
+
+
 
             const data = {
                 total_amount: bookingInfo.totalPrice,
@@ -135,29 +138,36 @@ async function run() {
                     },
                 };
                 const result = await bookingCollection.updateOne(filter, updateDoc, options);
-                
-                const findBookdTurf = await bookingCollection.findOne({ trxId: req.params.trxId })
-                let apiKey = defaultClient.authentications['api-key'];
-                apiKey.apiKey = process.env.brevoKey;
+                const findBookedTurf = await bookingCollection.findOne({ trxId: req.params.trxId })
+                if (findBookedTurf) {
+                    let apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
-                let defaultClient = brevo.ApiClient.instance;
+                    let apiKey = apiInstance.authentications['apiKey'];
+                    apiKey.apiKey = process.env.brevoKey;
 
-                let apiInstance = new brevo.TransactionalEmailsApi();
+                    let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
 
-                let sendSmtpEmail = new brevo.SendSmtpEmail();
-                sendSmtpEmail.subject = "My {{params.subject}}";
-                sendSmtpEmail.htmlContent = "<html><body><h1>Common: This is my first transactional email {{params.parameter}}</h1></body></html>";
-                sendSmtpEmail.sender = { "name": "Jony das", "email": "jonydascse@gmail.com" };
-                sendSmtpEmail.to = [
-                    { "email": `${findBookdTurf.email}`, "name": `${findBookdTurf.customerName}` }
-                ];
-                apiInstance.sendTransacEmail(sendSmtpEmail).then(function (data) {
-                    console.log('API called successfully. Returned data: ' + JSON.stringify(data));
-                  }, function (error) {
-                    console.error(error);
-                  });
-                
-                res.redirect("https://659e961aa17148ece11945dc--charming-pika-dd91a0.netlify.app/")
+                    sendSmtpEmail.subject = "My {{params.subject}}";
+                    sendSmtpEmail.htmlContent = `<html><body><h1>Payment successFull of ${findBookedTurf.turfName}</h1>
+                    
+                    <h2>Event : ${findBookedTurf.eventName}</h2>
+                    <h2>Slot : ${findBookedTurf.slot}</h2>
+                    <h3>Transaction Id : ${findBookedTurf.trxId}</h3>
+                    </body></html>`;
+                    sendSmtpEmail.sender = { "name": "Playespot.org", "email": "jonydascse@gmail.com" };
+                    sendSmtpEmail.to = [{ "email": `jonydascse21@gmail.com`, "name": `${customerName.customerName}` }];
+
+                    apiInstance.sendTransacEmail(sendSmtpEmail).then(function (data) {
+                        res.redirect("https://659e961aa17148ece11945dc--charming-pika-dd91a0.netlify.app/")
+
+                    }, function (error) {
+                        console.error(error);
+                    });
+                }
+
+
+                // const findBookdTurf = await bookingCollection.findOne({ trxId: req.params.trxId })
+
 
             }
         })
