@@ -5,6 +5,8 @@ const cors = require('cors');
 var dateFormat = require('dateformat');
 const moment = require('moment');
 const SibApiV3Sdk = require('@getbrevo/brevo');
+var jwt = require('jsonwebtoken');
+
 
 require("dotenv").config()
 
@@ -41,6 +43,24 @@ const client = new MongoClient(uri, {
     }
 });
 
+
+
+
+function varifiedJwt(req, res, next) {
+    const authHeader = req?.headers?.auhtorization;
+
+    if (!authHeader) {
+        return res.status(401).send({ mesage: "unathorized access" })
+    }
+    const token = authHeader?.split(" ")[1];
+    jwt.verify(token, process.env.SECREATE_TOKEN, function (err, decoded) {
+        if (err) {
+            return res.status(403).send({ mesage: "unathorized access" })
+        }
+        req.decoded = decoded;
+        next()
+    })
+}
 async function run() {
     try {
         // await client.connect(); its crying meeeeeeeeee
@@ -55,9 +75,17 @@ async function run() {
             res.send(result)
         })
         app.get("/users/:email", async (req, res) => {
+
             const email = req.params.email;
             const result = await userCollection.findOne({ email: email })
             res.send(result)
+        })
+        app.get("/userRole/:email", async (req, res) => {
+            const user = await userCollection.findOne({ email: req.params.email })
+            if (user.role == null) {
+                return res.send({ "role": "user" })
+            }
+            res.send({ "role": user.role })
         })
         app.put("/user/photo/:email", async (req, res) => {
             const email = req.params.email;
@@ -66,6 +94,17 @@ async function run() {
             const result = await userCollection.updateOne({ email: email }, { $set: image }, { upsert: true })
             res.send(result)
         })
+        app.get("/allUser", async (req, res) => {
+            const result = await userCollection.find({}).toArray()
+            res.send(result)
+        })
+        app.post("/allUser/role/:email", async (req, res) => {
+            const email = req.params.email;
+            const userRole = req.body;
+            const result = await userCollection.updateOne({ email: email }, { $set: userRole }, { upsert: true })
+            res.send(result);
+
+        })
 
         app.post("/addTurf", async (req, res) => {
             const turfInfo = req.body;
@@ -73,7 +112,17 @@ async function run() {
             res.send(result)
         })
         app.get("/allSpots", async (req, res) => {
-            const result = await turfCollection.find({}).toArray()
+            const division = req.query.division;
+
+            if (division == "null") {
+                const result = await turfCollection.find({}).toArray()
+                console.log(division)
+
+                return res.send(result)
+
+            }
+            const result = await turfCollection.find({ division: division }).toArray()
+
             res.send(result)
         })
         app.get("/allSpots/filter", async (req, res) => {
@@ -99,6 +148,18 @@ async function run() {
 
             const filteringAllSpotSlist = allSpots.filter(spot => spot?.name.toString().includes(searchText))
             res.send(filteringAllSpotSlist)
+        })
+        app.get("/division", async (req, res) => {
+            const division = [];
+            const result = await turfCollection.find({}).toArray()
+            result.map(spot => {
+                division.push(spot.division)
+            })
+            function removeDuplicates(arr) {
+                return arr.filter((item,
+                    index) => arr.indexOf(item) === index);
+            }
+            res.send(removeDuplicates(division))
         })
         app.post("/bookings", async (req, res) => {
             const trxId = new ObjectId().toString()
@@ -218,10 +279,11 @@ async function run() {
                 for (var i = 0; i < specifiEvent.weekdayTime.length; i++) {
                     var timeRange = specifiEvent.weekdayTime[i].toString().split("-");
 
-                    const startTimeClock = moment(timeRange[0].replace(" ", ""), 'HH:mm A');
+                    const startTimeClock = moment(timeRange[0], 'HH:mm A');
                     const endTimeClock = moment(timeRange[1].replace(" ", ""), 'HH:mm A');
                     // const interval = moment.duration(1, 'hour');
-
+                    console.log(startTimeClock)
+                    console.log(endTimeClock)
                     const hoursArray = [];
                     while (startTimeClock.isSameOrBefore(endTimeClock)) {
                         hoursArray.push(startTimeClock.format('hh:mm A'));
@@ -257,44 +319,60 @@ async function run() {
 
 
             // Example usage
+            if (filterWithEventName.length == 0) {
+                listOfTimeRange.map(timeRangeOrginal => {
+                    timeRangeOrginal.map(i => {
+                        listOfEveryAvalilableHour.push(i)
+                    })
+                })
+            }
 
-            listOfTimeRange.map(timeRangeOrginal => {
-
-                filterWithEventName.map(turf => {
-
-                    var slot = `${turf.slot}`.split("-")
-
-                    if (timeRangeOrginal.includes(slot[0])) {
-
-                        const startTime = moment(timeRangeOrginal[0].replace(" ", ""), "HH:mm A").format('hh:mm A');
-                        const endTime = moment(timeRangeOrginal[timeRangeOrginal.length - 1].replace(" ", ""), "HH:mm A").format('hh:mm A');
-                        const selectedStartTime = moment(slot[0].replace(" ", ""), "HH:mm A").format('hh:mm A');
-                        const selectedEndTime = moment(slot[1].replace(" ", ""), "HH:mm A").format('hh:mm A');
-
-                        const result = findAvailableTimeRange(startTime, endTime, selectedStartTime, selectedEndTime);
-
-                        const availableHour = eeryHourBeetweenRange(result)
-                        availableHour.map(i => listOfEveryAvalilableHour.push(i))
+            else {
+                listOfTimeRange.map(timeRangeOrginal => {
 
 
+                    filterWithEventName.map(turf => {
 
-                    } else {
-                        timeRangeOrginal.map(i => listOfEveryAvalilableHour.push(i))
+                        var slot = `${turf.slot}`.split("-")
+
+                        if (timeRangeOrginal?.includes(slot[0])) {
+                            console.log(timeRangeOrginal)
+
+                            const startTime = moment(timeRangeOrginal[0].replace(" ", ""), "HH:mm A").format('hh:mm A');
+                            const endTime = moment(timeRangeOrginal[timeRangeOrginal.length - 1].replace(" ", ""), "HH:mm A").format('hh:mm A');
+                            const selectedStartTime = moment(slot[0].replace(" ", ""), "HH:mm A").format('hh:mm A');
+                            const selectedEndTime = moment(slot[1].replace(" ", ""), "HH:mm A").format('hh:mm A');
+
+                            const result = findAvailableTimeRange(startTime, endTime, selectedStartTime, selectedEndTime);
+
+                            const availableHour = eeryHourBeetweenRange(result)
+                            listOfEveryAvalilableHour = [];
+
+                            availableHour?.map(i => listOfEveryAvalilableHour.push(i))
+                            timeRangeOrginal = availableHour;
+
+
+
+
+                        } else {
+                            timeRangeOrginal?.map(i => listOfEveryAvalilableHour.push(i))
+                        }
+
+
+
+
                     }
 
 
 
-
-                }
-
-
-                )
+                    )
 
 
 
 
 
-            })
+                })
+            }
 
 
             function eeryHourBeetweenRange(result) {
@@ -348,24 +426,18 @@ async function run() {
                 if (availableAfter) {
                     availableTimeRanges.push(availableAfter);
                 }
-                console.log(availableTimeRanges)
                 return availableTimeRanges;
 
             }
 
 
-            if (listOfEveryAvalilableHour.length == 0) {
-
-                listOfTimeRange.map(list => {
-                    list.map(i => listOfEveryAvalilableHour.push(i))
-                });
-            }
 
             res.send(listOfEveryAvalilableHour)
         })
 
 
         app.get("/mybooking/:email", async (req, res) => {
+
             const email = req.params.email;
             const result = await bookingCollection.find({ email: email }).toArray()
             res.send(result)
@@ -398,10 +470,15 @@ async function run() {
                 res.send(result)
 
             }
+
         })
 
 
+        app.get("/booked/:email", async (req, res) => {
+            const result = await bookingCollection.find({ ownerMail: req.params.email }).toArray()
 
+            res.send(result)
+        })
 
     } finally {
         // Ensures that the client will close when you finish/error

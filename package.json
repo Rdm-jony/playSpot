@@ -10,6 +10,7 @@
     "express": "^4.18.2",
     "firebase": "^10.4.0",
     "intl": "^1.2.5",
+    "jsonwebtoken": "^9.0.2",
     "moment": "^2.30.1",
     "mongodb": "^6.1.0",
     "sslcommerz-lts": "^1.1.0"
